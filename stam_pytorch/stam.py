@@ -56,16 +56,18 @@ class Transformer(nn.Module):
     def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
         super().__init__()
         self.layers = nn.ModuleList([])
+        self.norm = nn.LayerNorm(dim)
         for _ in range(depth):
             self.layers.append(nn.ModuleList([
                 PreNorm(dim, Attention(dim, heads = heads, dim_head = dim_head, dropout = dropout)),
                 PreNorm(dim, FeedForward(dim, mlp_dim, dropout = dropout))
             ]))
+
     def forward(self, x):
         for attn, ff in self.layers:
             x = attn(x) + x
             x = ff(x) + x
-        return x
+        return self.norm(x)
 
 class STAM(nn.Module):
     def __init__(
@@ -103,14 +105,8 @@ class STAM(nn.Module):
         self.dropout = nn.Dropout(emb_dropout)
 
         self.space_transformer = Transformer(dim, space_depth, space_heads, space_dim_head, space_mlp_dim, dropout)
-        self.space_norm = nn.LayerNorm(dim)
-
         self.time_transformer = Transformer(dim, time_depth, time_heads, time_dim_head, time_mlp_dim, dropout)
-
-        self.mlp_head = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, num_classes)
-        )
+        self.mlp_head = nn.Linear(dim, num_classes)
 
     def forward(self, video):
         x = self.to_patch_embedding(video)
@@ -130,17 +126,17 @@ class STAM(nn.Module):
 
         x = rearrange(x, 'b f ... -> (b f) ...')
         x = self.space_transformer(x)
+        x = rearrange(x[:, 0], '(b f) ... -> b f ...', b = b)  # select CLS token out of each frame
 
-        # norm space CLS tokens
-
-        x = self.space_norm(x[:, 0])
-        x = rearrange(x, '(b f) ... -> b f ...', b = b)
-
-        # time CLS tokens and attention
+        # concat time CLS tokens
 
         time_cls_tokens = repeat(self.time_cls_token, 'n d -> b n d', b = b)
         x = torch.cat((time_cls_tokens, x), dim = -2)
+
+        # time attention
+
         x = self.time_transformer(x)
 
         # final mlp
+
         return self.mlp_head(x[:, 0])
