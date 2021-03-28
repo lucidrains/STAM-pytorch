@@ -17,7 +17,7 @@ import torch
 from stam_pytorch import STAM
 
 model = STAM(
-	dim = 512,
+    dim = 512,
     image_size = 256,     # size of image
     patch_size = 32,      # patch size
     num_frames = 5,       # number of image frames, selected out of video
