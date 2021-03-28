@@ -2,7 +2,7 @@
 
 ## STAM - Pytorch
 
-Implementation of <a href="https://arxiv.org/abs/2103.13915">STAM (Space Time Attention Model)</a>, yet another pure and simple SOTA attention model that bests all previous models in video classification.
+Implementation of <a href="https://arxiv.org/abs/2103.13915">STAM (Space Time Attention Model)</a>, yet another pure and simple SOTA attention model that bests all previous models in video classification. This corroborates the finding of <a href="https://github.com/lucidrains/TimeSformer-pytorch">TimeSformer</a>. Attention is all we need.
 
 ## Install
 
