@@ -99,7 +99,7 @@ class STAM(nn.Module):
             nn.Linear(patch_dim, dim),
         )
 
-        self.pos_embedding = nn.Parameter(torch.randn(num_frames, num_patches + 1, dim))
+        self.pos_embedding = nn.Parameter(torch.randn(1, num_frames, num_patches + 1, dim))
         self.space_cls_token = nn.Parameter(torch.randn(1, dim))
         self.time_cls_token = nn.Parameter(torch.randn(1, dim))
         self.dropout = nn.Dropout(emb_dropout)
@@ -110,7 +110,7 @@ class STAM(nn.Module):
 
     def forward(self, video):
         x = self.to_patch_embedding(video)
-        b, f, *_ = x.shape
+        b, f, n, *_ = x.shape
 
         # concat space CLS tokens
 
@@ -119,7 +119,7 @@ class STAM(nn.Module):
 
         # positional embedding
 
-        x += self.pos_embedding
+        x += self.pos_embedding[:, :, :(n + 1)]
         x = self.dropout(x)
 
         # space attention

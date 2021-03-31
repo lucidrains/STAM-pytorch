@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
   name = 'stam-pytorch',
   packages = find_packages(),
-  version = '0.0.2',
+  version = '0.0.4',
   license='MIT',
   description = 'Space Time Attention Model (STAM) - Pytorch',
   author = 'Phil Wang',
