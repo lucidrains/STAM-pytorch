@@ -74,8 +74,11 @@ class STAM(nn.Module):
         self,
         *,
         dim,
-        image_size,
-        patch_size,
+        image_height,
+        image_width,
+        patch_height,
+        patch_width,
+        num_channel,
         num_frames,
         num_classes,
         space_depth,
@@ -90,12 +93,17 @@ class STAM(nn.Module):
         emb_dropout = 0.
     ):
         super().__init__()
-        assert image_size % patch_size == 0, 'Image dimensions must be divisible by the patch size.'
-        num_patches = (image_size // patch_size) ** 2
-        patch_dim = 3 * patch_size ** 2
+        assert image_height % patch_height == 0, 'Image dimensions must be divisible by the patch size.'
+        assert image_width % patch_width == 0, 'Image dimensions must be divisible by the patch size.'
+
+        num_path_height = (image_height // patch_height)
+        num_path_width = (image_width // patch_width)
+
+        num_patches = num_path_height * num_path_width
+        patch_dim = num_channel * patch_height * patch_width
 
         self.to_patch_embedding = nn.Sequential(
-            Rearrange('b f c (h p1) (w p2) -> b f (h w) (p1 p2 c)', p1 = patch_size, p2 = patch_size),
+            Rearrange('b f c (h p1) (w p2) -> b f (h w) (p1 p2 c)', p1 = patch_height, p2 = patch_width),
             nn.Linear(patch_dim, dim),
         )
 
